@@ -1,0 +1,34 @@
+name: demo
+on:
+  workflow_dispatch:
+
+jobs:
+  initial:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Starting workflow"
+
+  second:
+    runs-on: ubuntu-latest
+    needs: initial
+    steps:
+      - run: echo "Failing workflow for demonstration"
+      - run: exit 1
+
+  notify-on-error:
+    runs-on: ubuntu-latest
+    needs:
+      - initial
+      - second
+    if: ${{ failure() }}
+    steps:
+      - name: Send a message to Zulip
+        uses: zulip/github-actions-zulip/send-message@b62d5a0e48a4d984ea4fce5dd65ba691963d4db4
+        with:
+          api-key: ${{ secrets.ZULIP_API_KEY }}
+          email: "github-bot@jj-demo.zulipchat.com"
+          organization-url: "https://jj-demo.zulipchat.com"
+          to: "core team"
+          type: "stream"
+          topic: "workflow-failures"
+          content: "The ${{ github.workflow }} workflow for the ${{ github.repository }} repository failed. Workflow run link: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
