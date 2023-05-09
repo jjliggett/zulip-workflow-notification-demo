@@ -15,11 +15,20 @@ jobs:
       - run: echo "Failing workflow for demonstration"
       - run: exit 1
 
+  third:
+    runs-on: ubuntu-latest
+    needs:
+      - initial
+      - second
+    steps:
+      - run: echo "This job will get skipped"
+
   notify-on-error:
     runs-on: ubuntu-latest
     needs:
       - initial
       - second
+      - third
     if: ${{ failure() }}
     steps:
       - name: Send a message to Zulip
